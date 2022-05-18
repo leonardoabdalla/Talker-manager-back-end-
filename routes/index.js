@@ -6,15 +6,17 @@ const talkerJson = 'talker.json';
 
 const HTTP_OK_STATUS = 200;
 
-routes.get('/talk', async (request, response) => {
+routes.get('/talker', async (request, response) => {
     const rotaDados = await fs.readFile(talkerJson);
     const talker = JSON.parse(rotaDados);
 
     if (!talker) {
-        return response.status(HTTP_OK_STATUS).json(talker);
+        const resposta = response.status(HTTP_OK_STATUS).json(talker);
+        return resposta;
     }
 
-    return response.status(HTTP_OK_STATUS).json(talker);
+    const resposta = response.status(HTTP_OK_STATUS).json(talker);
+    return resposta;
   });
 
   module.exports = routes;
