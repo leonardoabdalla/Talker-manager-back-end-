@@ -35,17 +35,23 @@ routes.get('/talker/:id', async (req, res) => {
 });
 
 routes.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        if ([email, password].includes(undefined)) {
-            return res.status(401).json({});
+    const { email, password } = req.body;
+    const validaEmail = /^[a-z0-9.]+@[a-z0-9]+\.[a-z]+(\.[a-z]+)?$/i;
+    if ([email].includes(undefined)) {
+        return res.status(400).json({ message: 'O campo "email" é obrigatório' });
+    }
+    if ([password].includes(undefined)) {
+        return res.status(400).json({ message: 'O campo "password" é obrigatório' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
         }
-        const token = crypto.randomBytes(8).toString('hex');
-        return res.status(200).json({ token });    
-    } catch (error) {
-        return res.status(500).end();
-    } 
+    if (!email.match(validaEmail)) {
+        return res.status(400)
+        .json({ message: 'O "email" deve ter o formato "email@email.com"' });
+    }
+    const token = crypto.randomBytes(8).toString('hex');
+    return res.status(200).json({ token });    
 });
 
 module.exports = routes;
