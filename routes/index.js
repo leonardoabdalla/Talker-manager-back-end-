@@ -2,21 +2,33 @@ const fs = require('fs').promises;
 const express = require('express');
 
 const routes = express.Router();
-const talkerJson = 'talker.json';
 
 const HTTP_OK_STATUS = 200;
 
-routes.get('/talker', async (request, response) => {
-    const rotaDados = await fs.readFile(talkerJson);
+routes.get('/talker', async (req, res) => {
+    const rotaDados = await fs.readFile('talker.json');
     const talker = JSON.parse(rotaDados);
 
     if (!talker) {
-        const resposta = response.status(HTTP_OK_STATUS).json(talker);
+        const resposta = res.status(HTTP_OK_STATUS).json(talker);
         return resposta;
     }
 
-    const resposta = response.status(HTTP_OK_STATUS).json(talker);
+    const resposta = res.status(HTTP_OK_STATUS).json(talker);
     return resposta;
   });
 
-  module.exports = routes;
+routes.get('/talker/:id', async (req, res) => {
+    const { id } = req.params;
+    res.status(HTTP_OK_STATUS).json({ id });
+    const rotaDados = await fs.readFile('talker.json');
+    const talker = JSON.parse(rotaDados);
+
+    if (!talker) {
+        return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+    }
+
+    return res.status(HTTP_OK_STATUS).json(talker);
+});
+
+module.exports = routes;
