@@ -1,6 +1,12 @@
 const fs = require('fs').promises;
 const express = require('express');
 const crypto = require('crypto');
+const authMiddleware = require('./authMiddleware');
+const namePost = require('./namePost');
+const agePost = require('./agePost');
+const talkPost = require('./talkPost');
+const talkWatchedAt = require('./talkWatchedAt');
+const talkRate = require('./talkRate');
 
 const routes = express.Router();
 const HTTP_OK_STATUS = 200;
@@ -44,15 +50,20 @@ routes.post('/login', async (req, res) => {
     const token = crypto.randomBytes(8).toString('hex');
     return res.status(200).json({ token });    
     });
-// routes.post('/talker', authMiddleware, namePost, agePost, talkWatchedAt, talkRate,
-// async (req, res) => {
-//     const { name, age, talk: { watchedAt, rate }, id } = req.body;
-//     const rotaDados = await fs.readFile(talkerJson);
-//     const talker = JSON.parse(rotaDados);
-//     talker.push({ name, age, id: parseInt(talker.length + 1, 10), talk: { watchedAt, rate } });
-//     await fs.writeFile(talkerJson, talker);
-//     return res.status(201).json({ name, age, id, talk: { watchedAt, rate } });
-// });
+
+routes.post('/talker', authMiddleware, namePost, agePost, talkPost, talkWatchedAt, talkRate,
+async (req, res) => {
+    try {
+        const { name, age, talk: { watchedAt, rate }, id } = req.body;
+        const rotaDados = await fs.readFile('talker.json');
+        const talker = JSON.parse(rotaDados);
+        talker.push({ name, age, id: parseInt(talker.length + 1, 10), talk: { watchedAt, rate } });
+        await fs.writeFile('talker.json', talker);
+        return res.status(201).json({ name, age, id, talk: { watchedAt, rate } });
+    } catch (error) {
+        return res.status(500).end();
+    }
+});
 
 // routes.put('/talker/:id', 
 // authMiddleware, namePost, agePost, talkWatchedAt, talkRate, async (req, res) => {
@@ -76,7 +87,7 @@ routes.post('/login', async (req, res) => {
 // routes.delete('/talker/:id', authMiddleware, async (req, res) => {
 //     const { id } = req.params;
 
-//     const rotaDados = await fs.readFile(talkerJson);
+//     const rotaDados = await fs.readFile('talker.json');
 //     const talker = JSON.parse(rotaDados);
 
 //     const talkerUser = talker.findIndex((t) => t.id === parseInt(id, 10));
@@ -84,7 +95,7 @@ routes.post('/login', async (req, res) => {
 //     res.status(404).json({ message: 'Recipe not found!' });
 //     }
 //     talker.slice(talkerUser, 1);
-//     await fs.rm(talkerJson, talkerUser);
+//     await fs.rm('talker.json', talkerUser);
 //     res.status(204).end();
 // });
 
