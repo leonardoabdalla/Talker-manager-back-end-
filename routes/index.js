@@ -1,6 +1,11 @@
 const fs = require('fs').promises;
 const express = require('express');
 const crypto = require('crypto');
+const authMiddleware = require('../node_modules/authMiddleware');
+const namePost = require('../node_modules/namePost');
+const agePost = require('../node_modules/agePost');
+const talkWatchedAt = require('../node_modules/talkWatchedAt');
+const talkRate = require('../node_modules/talkRate');
 
 const routes = express.Router();
 
@@ -52,6 +57,50 @@ routes.post('/login', async (req, res) => {
     }
     const token = crypto.randomBytes(8).toString('hex');
     return res.status(200).json({ token });    
+});
+
+routes.post('/talker', authMiddleware, namePost, agePost, talkWatchedAt, talkRate,
+async (req, res) => {
+    const { name, age, talk: { watchedAt, rate }, id } = req.body;
+    const rotaDados = await fs.readFile('talker.json');
+    const talker = JSON.parse(rotaDados);
+    talker.push({ name, age, id: parseInt(talker.length + 1, 10), talk: { watchedAt, rate } });
+    await fs.writeFile('talker.json', talker);
+    return res.status(201).json({ name, age, id, talk: { watchedAt, rate } });
+});
+
+// routes.put('/talker/:id', 
+// authMiddleware, namePost, agePost, talkWatchedAt, talkRate, async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { name, age, talk } = req.body;
+//         const rotaDados = await fs.readFile('talker.json');
+//         const talker = JSON.parse(rotaDados);
+        
+//         const talkerUser = talker.find((t) => t.id === parseInt(id, 10));
+//         const result = talkerUser.update(name, age, id, talk);
+//         await fs.update('talker.json', result);
+
+//         return res.status(201).json(result); 
+
+//     } catch (error) {
+
+//     }
+// });
+
+routes.delete('/talker/:id', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+
+    const rotaDados = await fs.readFile('talker.json');
+    const talker = JSON.parse(rotaDados);
+
+    const talkerUser = talker.findIndex((t) => t.id === parseInt(id, 10));
+    if (talkerUser === -1) {
+    res.status(404).json({ message: 'Recipe not found!' });
+    }
+    talker.slice(talkerUser, 1);
+    await fs.rm('talker.json', talkerUser);
+    res.status(204).end();
 });
 
 module.exports = routes;
