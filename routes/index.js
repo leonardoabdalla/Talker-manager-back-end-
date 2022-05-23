@@ -7,7 +7,6 @@ const agePost = require('./agePost');
 const talkPost = require('./talkPost');
 const talkWatchedAt = require('./talkWatchedAt');
 const talkRate = require('./talkRate');
-const { write } = require('fs');
 
 const talkerJson = 'talker.json';
 
